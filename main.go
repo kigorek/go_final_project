@@ -24,8 +24,10 @@ func main() {
 		log.Fatalf("возникла проблема при инициализации БД: %v", err)
 
 	}
+	defer db.Close()
 
 	var port string
+
 	if os.Getenv("TODO_PORT") != "" {
 		port = os.Getenv("TODO_PORT")
 	} else {

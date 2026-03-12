@@ -2,13 +2,13 @@ package api
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/kigorek/go_final_project/pkg/db"
+	"github.com/kigorek/go_final_project/tests"
 )
 
 type TasksResp struct {
@@ -16,7 +16,7 @@ type TasksResp struct {
 }
 
 func GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := db.Tasks(50) // в параметре максимальное количество записей
+	tasks, err := db.Tasks(tests.Limit)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		writeJson(w, map[string]string{
@@ -52,7 +52,7 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task, err := db.GetTask(id)
 	if err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "ошибка получения задачи из БД",
 		})
 		return
 	}
@@ -69,19 +69,10 @@ func getTaskHandler(w http.ResponseWriter, r *http.Request) {
 func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
 
-	body, err := io.ReadAll(r.Body)
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		writeJson(w, map[string]string{
-			"error": err.Error(),
-		})
-		return
-	}
-	defer r.Body.Close()
-
-	if err := json.Unmarshal(body, &task); err != nil {
-		writeJson(w, map[string]string{
-			"error": err.Error(),
-		})
+		w.WriteHeader(http.StatusBadRequest)
+		writeJson(w, map[string]string{"error": err.Error()})
 		return
 	}
 
@@ -101,14 +92,14 @@ func putTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := checkDate(&task); err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "неправильгный формат даты или повторения",
 		})
 		return
 	}
 
 	if err := db.UpdateTask(&task); err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "ошибка обновления задачи в БД",
 		})
 		return
 	}
@@ -130,7 +121,7 @@ func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err := db.DeleteTask(id)
 	if err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "ошибка удаления залдачи из БД",
 		})
 		return
 	}
@@ -149,7 +140,7 @@ func doneHandler(w http.ResponseWriter, r *http.Request) {
 	task, err := db.GetTask(id)
 	if err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "ошибка получения задачи из БД",
 		})
 		return
 	}
@@ -163,7 +154,7 @@ func doneHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(task.Repeat) == "" {
 		if err := db.DeleteTask(ids); err != nil {
 			writeJson(w, map[string]string{
-				"error": err.Error(),
+				"error": "ошибка удаления залдачи из БД",
 			})
 			return
 		}
@@ -175,14 +166,14 @@ func doneHandler(w http.ResponseWriter, r *http.Request) {
 	next, err := NextDate(now, task.Date, task.Repeat)
 	if err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "неправильгный формат даты или повторения",
 		})
 		return
 	}
 
 	if err := db.UpdateDate(next, ids); err != nil {
 		writeJson(w, map[string]string{
-			"error": err.Error(),
+			"error": "ошибка при обновлении даты повтора в БД",
 		})
 		return
 	}

@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,16 +12,7 @@ import (
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		writeJson(w, map[string]string{"error": err.Error()})
-		return
-	}
-	defer r.Body.Close()
-
-	err = json.Unmarshal(body, &task)
-
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		writeJson(w, map[string]string{"error": err.Error()})

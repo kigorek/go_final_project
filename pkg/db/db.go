@@ -32,12 +32,15 @@ func Init(dbFile string) error {
 	db, err = sql.Open("sqlite", dbFile)
 	if err != nil {
 		return fmt.Errorf("проблема при открытии БД: %w", err)
+
 	}
 
 	if install {
 		_, err := db.Exec(schema)
 		if err != nil {
+			_ = db.Close()
 			return fmt.Errorf("при выполнении запроса произошла ошибка: %w", err)
+
 		} else {
 			fmt.Println("схема БД создана")
 		}
@@ -45,4 +48,11 @@ func Init(dbFile string) error {
 
 	return nil
 
+}
+
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
 }

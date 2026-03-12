@@ -9,7 +9,7 @@ import (
 
 func Run(port string) error {
 	api.Init()
-	fmt.Println("Start HTTP Server")
+	fmt.Printf("Start HTTP Server on port%s", port)
 
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 

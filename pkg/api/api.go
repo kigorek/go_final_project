@@ -18,6 +18,10 @@ func Init() {
 }
 
 func nextDayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 
 	nowDate := r.FormValue("now")
 	dStart := r.FormValue("date")
@@ -37,10 +41,12 @@ func nextDayHandler(w http.ResponseWriter, r *http.Request) {
 
 	if dStart == "" {
 		http.Error(w, "поле Дата не определено", http.StatusBadRequest)
+		return
 	}
 
 	if repeat == "" {
 		http.Error(w, "поле повтор не определено ", http.StatusBadRequest)
+		return
 	}
 
 	nextDate, err := NextDate(now, dStart, repeat)
@@ -66,8 +72,10 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		deleteTaskHandler(w, r)
 
-	}
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 
+	}
 }
 
 func writeJson(w http.ResponseWriter, data any) {

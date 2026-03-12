@@ -20,7 +20,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		return "", errors.New("в параметре repeat — пустая строка")
 	}
 
-	dStart, err := time.Parse("20060102", dstart)
+	dStart, err := time.Parse(dateFormat, dstart)
 	if err != nil {
 		return "", fmt.Errorf("некорректная дата dstart: %w", err)
 	}
@@ -62,8 +62,8 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 
 	default:
-		return "", errors.New("неподдерживаемый формат")
+		return "", errors.New("unsupported format")
 	}
 
-	return dStart.Format("20060102"), nil
+	return dStart.Format(dateFormat), nil
 }
